@@ -98,12 +98,13 @@ class ConvertLexerToKotlin : AnAction() {
             .replace("java.io.", "")
             .replace("java.util.", "")
             .replace("java.lang.", "")
+            .replace(": Set", ": HashSet")
+            .replace(": List", ": ArrayList")
             .replace("(`in`: Reader)", "")
             .replace("@Throws(IOException::class)", "")
+            .replace("] shl", "].toInt() shl")
             .replace("zzForAction@{", "zzForAction@")
-            .replace(
-                "}\n" +
-                        "            // store back cached position", ""
+            .replace(Regex("}\\s+// store back cached position"), ""
             )
             .replace(
                 "init {\n" +
