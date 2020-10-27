@@ -95,6 +95,9 @@ class ConvertLexerToKotlin : AnAction() {
         val text = document.text
 
         val newText = text.replace("Character", "Compat")
+            .replace("java.io.", "")
+            .replace("java.util.", "")
+            .replace("java.lang.", "")
             .replace("(`in`: Reader)", "")
             .replace("@Throws(IOException::class)", "")
             .replace("zzForAction@{", "zzForAction@")
