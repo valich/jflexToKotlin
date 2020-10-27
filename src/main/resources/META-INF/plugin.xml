@@ -1,19 +1,23 @@
 <idea-plugin>
-    <id>com.github.valich.jflextokotlin</id>
-    <name>jflexToKotlin</name>
+    <id>com.github.valich</id>
+    <name>JFlexToKotlin</name>
     <vendor>valich</vendor>
 
     <!-- Product and plugin compatibility requirements -->
     <!-- https://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html -->
     <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.lang</depends>
+    <depends>com.intellij.modules.java</depends>
+    <depends>com.intellij.java</depends>
+    <depends>org.jetbrains.kotlin</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <applicationService serviceImplementation="com.github.valich.jflextokotlin.services.MyApplicationService"/>
-        <projectService serviceImplementation="com.github.valich.jflextokotlin.services.MyProjectService"/>
-    </extensions>
 
-    <applicationListeners>
-        <listener class="com.github.valich.jflextokotlin.listeners.MyProjectManagerListener"
-                  topic="com.intellij.openapi.project.ProjectManagerListener"/>
-    </applicationListeners>
+    </extensions>
+    <actions>
+        <action id="com.github.valich.jflextokotlin.actions.ConvertLexerToKotlin"
+                class="com.github.valich.jflextokotlin.actions.ConvertLexerToKotlin"
+                text="Convert JFlex Lexer to Kotlin"/>
+    </actions>
+
 </idea-plugin>
