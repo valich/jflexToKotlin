@@ -5,22 +5,18 @@ import com.intellij.lang.jvm.JvmModifier
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.PlatformDataKeys
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.ex.ApplicationManagerEx
-import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.module.ModuleUtilCore
-import com.intellij.openapi.progress.ProgressManager
 import com.intellij.psi.*
 import com.intellij.psi.impl.source.tree.java.PsiLiteralExpressionImpl
-import com.siyeh.ig.psiutils.ExpressionUtils
 import org.jetbrains.kotlin.idea.actions.JavaToKotlinAction
 import org.jetbrains.kotlin.idea.util.application.executeWriteCommand
-import org.jetbrains.kotlin.idea.util.application.runWriteAction
-import org.jetbrains.kotlin.j2k.accessModifier
 import org.jetbrains.kotlin.psi.KtFile
 import kotlin.streams.toList
 
+const val packedLineMaxLength = 5000
+
 class ConvertLexerToKotlin : AnAction() {
+
     override fun update(e: AnActionEvent) {
         templatePresentation.isEnabledAndVisible = e.isJavaFlexLexerFile()
     }
@@ -84,18 +80,9 @@ class ConvertLexerToKotlin : AnAction() {
                             ?: error("weird. ${psiField.name}")
 
                     if (psiField.startOffsetInParent > unpackedField.startOffsetInParent) {
-                        val sibling = unpackedField.prevSibling
-                        val parent = unpackedField.parent
-
                         val unpackedCopy = unpackedField.copy()
                         unpackedField.replace(psiField.copy())
                         psiField.replace(unpackedCopy)
-//                        parent.removeChild(psiField.node)
-//                        parent.removeChild(unpackedField.node)
-//
-//                        swapPsi
-//                        parent.addChild(unpackedField.node, sibling.node)
-//                        parent.addChild(psiField.node, sibling.node)
                     }
                 }
             }
@@ -111,11 +98,15 @@ class ConvertLexerToKotlin : AnAction() {
             .replace("(`in`: Reader)", "")
             .replace("@Throws(IOException::class)", "")
             .replace("zzForAction@{", "zzForAction@")
-            .replace("}\n" +
-                    "            // store back cached position", "")
-            .replace("init {\n" +
-                    "        this.zzReader = `in`\n" +
-                    "    }", "")
+            .replace(
+                "}\n" +
+                        "            // store back cached position", ""
+            )
+            .replace(
+                "init {\n" +
+                        "        this.zzReader = `in`\n" +
+                        "    }", ""
+            )
 
         ktFile.project.executeWriteCommand("conversion3") {
             document.setText(newText)
@@ -123,14 +114,13 @@ class ConvertLexerToKotlin : AnAction() {
     }
 
     private fun createShorterStringConcat(expression: PsiPolyadicExpression): PsiElement {
-        val lineMaxLength = 5000;
         val totalString =
             expression.operands.joinToString(separator = "") { (it as PsiLiteralExpression).value as String }
 
-        val linesNumber = (totalString.length + lineMaxLength - 1) / lineMaxLength
+        val linesNumber = (totalString.length + packedLineMaxLength - 1) / packedLineMaxLength
         val newText = (0 until linesNumber).joinToString(separator = " +\n") { lineNumber ->
-            val from = lineNumber * lineMaxLength
-            val to = ((lineNumber + 1) * lineMaxLength).coerceAtMost(totalString.length)
+            val from = lineNumber * packedLineMaxLength
+            val to = ((lineNumber + 1) * packedLineMaxLength).coerceAtMost(totalString.length)
             "\"${totalString.substring(from, to).createUnicodeNotationString()}\""
         }
 
