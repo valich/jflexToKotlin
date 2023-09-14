@@ -149,6 +149,7 @@ internal fun String.createUnicodeNotationString(): String {
         when (cp) {
             0x000a -> "\\n"
             0x000d -> "\\r"
+            0x0022 -> "\\\""
             else -> "\\u" + String.format("%04x", cp)
         }
     }
